@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
+import ReactPaginate from "react-paginate";
+
 import MovieCard from "../components/movie/MovieCard";
-import { fetcher } from "../config";
+import { fetcher, tmdbAPI } from "../config";
 import useDebounce from "../hooks/useDebounce";
 
-const pageCount = 5;
+const itemsPerPage = 20;
 
 const MoviePage = () => {
+	const [pageCount, setPageCount] = useState(0);
+	const [itemOffset, setItemOffset] = useState(0);
 	const [nextPage, setNextPage] = useState(1);
 	const [filter, setFilter] = useState("");
-	const [url, setUrl] = useState(
-		`https://api.themoviedb.org/3/movie/popular?api_key=dc01a8f91ca4c206932a350cbf16d7c0&page=${nextPage}`
-	);
+	const [url, setUrl] = useState(tmdbAPI.getMovieList("popular", nextPage));
 	const filterDebounce = useDebounce(filter, 500);
 	const handleFilterChange = (e) => {
 		setFilter(e.target.value);
@@ -22,14 +24,29 @@ const MoviePage = () => {
 	useEffect(() => {
 		if (filterDebounce) {
 			setUrl(
-				`https://api.themoviedb.org/3/search/movie?api_key=dc01a8f91ca4c206932a350cbf16d7c0&query=${filterDebounce}&page=${nextPage}`
+				tmdbAPI.getMovieSearch(filterDebounce, nextPage)
 			);
 		} else {
-			setUrl(
-				`https://api.themoviedb.org/3/movie/popular?api_key=dc01a8f91ca4c206932a350cbf16d7c0&page=${nextPage}`
+			setUrl(tmdbAPI.getMovieList("popular", nextPage)
 			);
 		}
 	}, [filterDebounce, nextPage]);
+
+	useEffect(() => {
+		if (!data || !data.total_results) return;
+		// Fetch items from another resources.
+		setPageCount(Math.ceil(data.total_results / itemsPerPage));
+	}, [data]);
+
+	// Invoke when user click to request another page.
+	const handlePageClick = (event) => {
+		const newOffset = (event.selected * itemsPerPage) % data.length;
+		console.log(
+			`User requested page number ${event.selected}, which is offset ${newOffset}`
+		);
+		setItemOffset(newOffset);
+		setNextPage(event.selected + 1);
+	};
 
 	const movies = data?.results;
 	console.log(url);
@@ -71,8 +88,21 @@ const MoviePage = () => {
 						<MovieCard key={item.id} item={item} />
 					))}
 			</div>
-			<div className="flex items-center justify-center mt-10 gap-x-5">
-				<span className="cursor-pointer" onClick={() => setNextPage(nextPage - 1)}>
+			<ReactPaginate
+				breakLabel="..."
+				nextLabel="next >"
+				onPageChange={handlePageClick}
+				pageRangeDisplayed={5}
+				pageCount={pageCount}
+				previousLabel="< previous"
+				renderOnZeroPageCount={null}
+				className="pagination"
+			/>
+			{/* <div className="flex items-center justify-center mt-10 gap-x-5">
+				<span
+					className="cursor-pointer"
+					onClick={() => setNextPage(nextPage - 1)}
+				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						className="h-6 w-6"
@@ -97,7 +127,10 @@ const MoviePage = () => {
 						{index + 1}
 					</span>
 				))}
-				<span className="cursor-pointer" onClick={() => setNextPage(nextPage + 1)}>
+				<span
+					className="cursor-pointer"
+					onClick={() => setNextPage(nextPage + 1)}
+				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						className="h-6 w-6"
@@ -113,7 +146,7 @@ const MoviePage = () => {
 						/>
 					</svg>
 				</span>
-			</div>
+			</div> */}
 		</div>
 	);
 };

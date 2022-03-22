@@ -3,14 +3,14 @@ import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import { SwiperSlide, Swiper } from "swiper/react";
 import MovieCard from "../components/movie/MovieCard";
-import { apiKey, fetcher } from "../config";
+import { apiKey, fetcher, tmdbAPI } from "../config";
 
 // https://api.themoviedb.org/3/movie/{movie_id}?api_key=<<api_key>>
 
 const MovieDetailPage = () => {
 	const { movieId } = useParams();
 	const { data, error } = useSWR(
-		`https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}`,
+		tmdbAPI.getMovieDetails(movieId),
 		fetcher
 	);
 
@@ -24,13 +24,13 @@ const MovieDetailPage = () => {
 				<div
 					className="w-full h-full bg-cover bg-no-repeat"
 					style={{
-						backgroundImage: `url(https://image.tmdb.org/t/p/original/${backdrop_path})`,
+						backgroundImage: `url(${tmdbAPI.imageOriginal(backdrop_path)})`,
 					}}
 				></div>
 			</div>
 			<div className="w-full h-[400px] max-w-[800px] mx-auto -mt-[200px] relative z-10">
 				<img
-					src={`https://image.tmdb.org/t/p/original/${backdrop_path}`}
+					src={tmdbAPI.imageOriginal(backdrop_path)}
 					alt=""
 					className="w-full h-full object-cover rounded-xl object-top"
 				/>
@@ -63,7 +63,7 @@ const MovieDetailPage = () => {
 function MovieCredits() {
 	const { movieId } = useParams();
 	const { data, error } = useSWR(
-		`https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${apiKey}`,
+		tmdbAPI.getMovieMeta(movieId, "credits"),
 		fetcher
 	);
 
@@ -78,7 +78,7 @@ function MovieCredits() {
 				{cast.slice(0, 8).map((item) => (
 					<div className="cast-item" key={item.id}>
 						<img
-							src={`https://image.tmdb.org/t/p/original/${item.profile_path}`}
+							src={tmdbAPI.imageOriginal(item.profile_path)}
 							alt=""
 							className="w-full h-[350px] object-cover rounded-lg"
 						/>
@@ -99,7 +99,7 @@ function MovieCredits() {
 function MovieVideos() {
 	const { movieId } = useParams();
 	const { data, error } = useSWR(
-		`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${apiKey}`,
+		tmdbAPI.getMovieMeta(movieId, "videos"),
 		fetcher
 	);
 
@@ -139,7 +139,7 @@ function MovieVideos() {
 function MoviesSimilar() {
 	const { movieId } = useParams();
 	const { data, error } = useSWR(
-		`https://api.themoviedb.org/3/movie/${movieId}/similar?api_key=${apiKey}`,
+		tmdbAPI.getMovieMeta(movieId, "similar"),
 		fetcher
 	);
 
