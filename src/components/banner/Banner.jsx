@@ -32,6 +32,7 @@ const Banner = () => {
 };
 
 const BannerItem = ({ item }) => {
+	console.log(item);
     const { title, poster_path, backdrop_path, id } = item;
 	const navigate = useNavigate()
 	return (
